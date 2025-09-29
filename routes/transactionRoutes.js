@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    getTransactionById,
   getTransactions,
   getTransactionsBySchool,
 } from "../controllers/transactionController.js";

@@ -6,6 +6,7 @@ import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import transactionRoutes from "./routes/transactionRoutes.js";
+import transactionStatusRoute from "./routes/transactionStatusRoute.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/webhook", webhookRoutes);
+app.use("/api/transaction-status",transactionStatusRoute)
 
 // app.use("/",(req, res) => {
 //   res.send("API is running...");
