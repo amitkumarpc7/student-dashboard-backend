@@ -177,6 +177,17 @@ curl --location 'https://student-dashboard-backend-dln5.onrender.com/api/transac
 GET /api/transactions/school/:schoolId
 ````
 
+### 6. Fetch Single Transaction Status
+````bash
+curl --location 'https://student-dashboard-backend-dln5.onrender.com/api/transaction-status/68da60b3154d1bce65b677bf' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZGEzNDliZTZiZDJiZDRkZDdmYjEyYyIsImlhdCI6MTc1OTEzMDg0MSwiZXhwIjoxNzU5NzM1NjQxfQ.CXLcji7v5Xgx7GbUWJcU2f15FMYVCKV1MSet0LBZu0A'
+```bash
+GET /api/transaction-status/:custom_order_id
+````
+
+
+
+
 ---
 
 ## Security
