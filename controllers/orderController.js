@@ -1,5 +1,6 @@
 import axios from "axios";
 import Order from "../models/Order.js";
+import OrderStatus from "../models/OrderStatus.js";
 import { signPayment } from "../utils/jwtSign.js";
 
 export const createPayment = async (req, res) => {
@@ -36,6 +37,14 @@ export const createPayment = async (req, res) => {
         },
       }
     );
+
+    // 4️⃣ Persist mapping so webhook can update this row later
+    await OrderStatus.create({
+      collect_id: order._id, // ObjectId matches orders._id for $lookup
+      custom_order_id: data.collect_request_id, // gateway id (string)
+      order_amount: Number(amount),
+      status: "pending",
+    });
 
     res.json({
       collect_request_id: data.collect_request_id,

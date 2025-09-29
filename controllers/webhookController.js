@@ -14,9 +14,8 @@ export const handleWebhook = async (req, res) => {
     }
 
     await OrderStatus.findOneAndUpdate(
-      { collect_id: new mongoose.Types.ObjectId(info.order_id) },
+      { custom_order_id: info.order_id },
       {
-        collect_id: new mongoose.Types.ObjectId(info.order_id),
         order_amount: info.order_amount,
         transaction_amount: info.transaction_amount,
         gateway: info.gateway,
@@ -29,7 +28,7 @@ export const handleWebhook = async (req, res) => {
         payment_time: new Date(info.payment_time),
         error_message: info.error_message,
       },
-      { upsert: true, new: true }
+      { upsert: false, new: true }
     );
 
     res.status(200).json({ message: "Webhook processed successfully" });
