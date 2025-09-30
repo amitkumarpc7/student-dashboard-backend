@@ -47,11 +47,13 @@ export const getTransactions = async (req, res) => {
       };
     }
 
-    if (start_date || end_date) {
-      match.createdAt = {};
-      if (start_date) match.createdAt.$gte = new Date(start_date);
-      if (end_date) match.createdAt.$lte = new Date(end_date);
+    if (start_date) {
+      const start = new Date(start_date + "T00:00:00.000Z");
+      const end = new Date(start_date + "T23:59:59.999Z");
+
+      match.createdAt = { $gte: start, $lte: end }; 
     }
+
 
     if (search) {
       const orConditions = [
