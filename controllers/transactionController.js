@@ -1,7 +1,6 @@
 import OrderStatus from "../models/OrderStatus.js";
 import mongoose from "mongoose";
 
-
 export const getTransactions = async (req, res) => {
   try {
     const {
@@ -17,7 +16,6 @@ export const getTransactions = async (req, res) => {
     } = req.query;
 
     const skip = (Number(page) - 1) * Number(limit);
-
 
     const pipeline = [
       {
@@ -49,14 +47,12 @@ export const getTransactions = async (req, res) => {
       };
     }
 
-    // Date range filter
     if (start_date || end_date) {
-      match.payment_time = {};
-      if (start_date) match.payment_time.$gte = new Date(start_date);
-      if (end_date) match.payment_time.$lte = new Date(end_date);
+      match.createdAt = {};
+      if (start_date) match.createdAt.$gte = new Date(start_date);
+      if (end_date) match.createdAt.$lte = new Date(end_date);
     }
 
-    // Search filter (student name/id, custom_order_id, order _id)
     if (search) {
       const orConditions = [
         { custom_order_id: { $regex: search, $options: "i" } },
@@ -64,7 +60,7 @@ export const getTransactions = async (req, res) => {
         { "orderInfo.student_info.id": { $regex: search, $options: "i" } },
       ];
 
-      // Include exact match for order ID if valid ObjectId
+      
       if (mongoose.Types.ObjectId.isValid(search)) {
         orConditions.push({
           "orderInfo._id": new mongoose.Types.ObjectId(search),
@@ -75,15 +71,13 @@ export const getTransactions = async (req, res) => {
     }
 
     if (Object.keys(match).length) pipeline.push({ $match: match });
-
-    // Count total documents
+    
     const countAgg = await OrderStatus.aggregate([
       ...pipeline,
       { $count: "total" },
     ]);
     const total = countAgg[0]?.total || 0;
 
-    // Sorting
     const orderParam = String(order || "desc").toLowerCase();
     const sortDirection = ["desc", "descending", "descend", "-1"].includes(
       orderParam
@@ -92,7 +86,7 @@ export const getTransactions = async (req, res) => {
       : 1;
 
     const sortMap = {
-      payment_time: "orderInfo.payment_time", 
+      payment_time: "createdAt", 
       status: "status",
       transaction_amount: "transaction_amount",
       order_amount: "order_amount",
@@ -101,21 +95,21 @@ export const getTransactions = async (req, res) => {
       student_name: "orderInfo.student_info.name",
     };
 
-    const sortField = sortMap[String(sort)] || "orderInfo.payment_time";
+    const sortField = sortMap[String(sort)] || "createdAt"; 
     pipeline.push(
       { $sort: { [sortField]: sortDirection } },
       { $skip: skip },
       { $limit: Number(limit) }
     );
 
-    // Project only needed fields
+    
     pipeline.push({
       $project: {
         collect_id: 1,
         custom_order_id: 1,
         order_amount: 1,
         transaction_amount: 1,
-        payment_time: "$orderInfo.payment_time",
+        payment_time: "$createdAt", 
         payment_mode: 1,
         status: 1,
         school_id: "$orderInfo.school_id",
@@ -154,6 +148,24 @@ export const getTransactionsBySchool = async (req, res) => {
     },
     { $unwind: "$orderInfo" },
     { $match: { "orderInfo.school_id": schoolId } },
+    
+    {
+      $project: {
+        collect_id: 1,
+        custom_order_id: 1,
+        order_amount: 1,
+        transaction_amount: 1,
+        payment_time: "$createdAt",
+        payment_mode: 1,
+        status: 1,
+        school_id: "$orderInfo.school_id",
+        gateway: "$orderInfo.gateway_name",
+        student_name: "$orderInfo.student_info.name",
+        student_id: "$orderInfo.student_info.id",
+        phone: "$orderInfo.student_info.phone",
+        order_id: "$orderInfo._id",
+      },
+    },
   ]);
   res.json(transactions);
 };
@@ -163,7 +175,7 @@ export const getTransactionById = async (req, res) => {
     const { custom_order_id } = req.params;
 
     const transaction = await OrderStatus.aggregate([
-      { $match: { custom_order_id: custom_order_id } }, // ✅ Match by custom_order_id
+      { $match: { custom_order_id: custom_order_id } },
       {
         $lookup: {
           from: "orders",
@@ -179,7 +191,7 @@ export const getTransactionById = async (req, res) => {
           custom_order_id: 1,
           order_amount: 1,
           transaction_amount: 1,
-          payment_time: "$orderInfo.payment_time", // Fixed: use orderInfo.payment_time
+          payment_time: "$createdAt", 
           payment_mode: 1,
           status: 1,
           school_id: "$orderInfo.school_id",
@@ -202,5 +214,3 @@ export const getTransactionById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
